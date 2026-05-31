@@ -1,0 +1,58 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from app.validators.mocambique import MocambiquePhoneValidator
+from app.validators.angola import AngolaPhoneValidator
+from app.validators.portugal import PortugalPhoneValidator
+
+def testar_todos():
+    # Moçambique
+    mz = MocambiquePhoneValidator()
+    
+    r = mz.validar("+258 84 123 4567")
+    assert r['valido'] == True
+    assert r['operadora'] == 'Vodacom'
+    print("✅ Moçambique +258 84 válido")
+    
+    r = mz.validar("84 123 4567")
+    assert r['valido'] == True
+    print("✅ Moçambique sem código país")
+    
+    r = mz.validar("0841234567")
+    assert r['valido'] == True
+    print("✅ Moçambique com 0 inicial")
+    
+    r = mz.validar("12345")
+    assert r['valido'] == False
+    print("✅ Moçambique número inválido detetado")
+    
+    # Angola
+    ao = AngolaPhoneValidator()
+    
+    r = ao.validar("+244 923 123 456")
+    assert r['valido'] == True
+    assert r['operadora'] == 'Unitel'
+    print("✅ Angola +244 923 válido")
+    
+    r = ao.validar("999888777")
+    assert r['valido'] == True
+    print("✅ Angola sem código país")
+    
+    # Portugal
+    pt = PortugalPhoneValidator()
+    
+    r = pt.validar("+351 91 123 4567")
+    assert r['valido'] == True
+    assert r['operadora'] == 'Vodafone'
+    print("✅ Portugal +351 91 válido")
+    
+    r = pt.validar("211234567")
+    assert r['valido'] == True
+    assert r['tipo'] == 'fixo'
+    print("✅ Portugal fixo válido")
+    
+    print("\n🎉 Todos os testes passaram!")
+
+if __name__ == "__main__":
+    testar_todos()
