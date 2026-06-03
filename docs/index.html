@@ -131,7 +131,7 @@
             
             try {
                 const response = await fetch(
-                    'https://phone-validator-api-2izk.onrender.com/validar?numero=' + encodeURIComponent(input)
+                    'https://phone-validator-api-2izk.onrender.com/demo?numero=' + encodeURIComponent(input)
                 );
                 const data = await response.json();
                 resultDiv.style.display = 'block';

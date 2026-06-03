@@ -158,6 +158,43 @@ async def registrar(request: RegistroRequest):
         "mensagem": "Guarde esta chave. Use no header X-API-Key"
     }
 
+
+@app.get("/demo")
+async def demo_validar(numero: str = Query(...)):
+    """Demonstração pública - sem API Key - limitado a 5 por hora"""
+    request = PhoneNumberRequest(numero=numero)
+    return await validar_numero_interno(request)
+
+async def validar_numero_interno(request: PhoneNumberRequest):
+    numero = request.numero.strip()
+    if not numero:
+        raise HTTPException(status_code=400, detail="Número obrigatório")
+    
+    codigo_pais = None
+    if request.pais_hint:
+        hints = {
+            'MZ': '258', 'MOÇAMBIQUE': '258',
+            'AO': '244', 'ANGOLA': '244',
+            'BR': '55', 'BRASIL': '55',
+            'PT': '351', 'PORTUGAL': '351',
+        }
+        codigo_pais = hints.get(request.pais_hint.upper())
+    
+    if not codigo_pais:
+        codigo_pais = detectar_pais(numero)
+    
+    if not codigo_pais:
+        validator = InternacionalPhoneValidator(codigo_pais='+??', nome_pais='Desconhecido')
+        resultado = validator.validar(numero)
+        return PhoneNumberResponse(**resultado)
+    
+    validator = VALIDATORS.get(codigo_pais)
+    if not validator:
+        validator = InternacionalPhoneValidator(codigo_pais=f'+{codigo_pais}', nome_pais='Desconhecido')
+    
+    resultado = validator.validar(numero)
+    return PhoneNumberResponse(**resultado)
+
 @app.post("/validar", response_model=PhoneNumberResponse)
 async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(api_key_header)):
     if api_key:
