@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Validator API - Africa & Lusophone</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0d1117; color: #c9d1d9; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; padding: 60px 20px; }
+        .hero { text-align: center; margin-bottom: 60px; }
+        .hero h1 { font-size: 2.5em; color: #58a6ff; margin-bottom: 16px; }
+        .hero p { font-size: 1.2em; color: #8b949e; max-width: 600px; margin: 0 auto; }
+        .badge { display: inline-block; background: #1f6feb22; color: #58a6ff; border: 1px solid #30363d; padding: 6px 12px; border-radius: 20px; font-size: 0.9em; margin: 4px; }
+        .badges { margin: 20px 0; }
+        .section { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; margin-bottom: 24px; }
+        .section h2 { color: #58a6ff; margin-bottom: 16px; }
+        .section p { margin-bottom: 12px; }
+        .try-area { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+        .try-area input { width: 100%; padding: 12px; background: #161b22; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; font-size: 1em; margin-bottom: 12px; }
+        .try-area button { padding: 12px 24px; background: #238636; color: white; border: none; border-radius: 6px; font-size: 1em; cursor: pointer; }
+        .try-area button:hover { background: #2ea043; }
+        .try-area pre { background: #0d1117; padding: 16px; border-radius: 6px; margin-top: 12px; overflow-x: auto; font-size: 0.9em; border: 1px solid #30363d; }
+        .pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+        .plan { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; text-align: center; }
+        .plan h3 { color: #58a6ff; margin-bottom: 8px; }
+        .plan .price { font-size: 2em; font-weight: bold; margin-bottom: 8px; }
+        .plan .calls { color: #8b949e; font-size: 0.9em; margin-bottom: 16px; }
+        .plan button { padding: 10px 20px; background: #1f6feb; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .plan.featured { border-color: #58a6ff; }
+        .plan.featured button { background: #238636; }
+        .code-block { background: #0d1117; border: 1px solid #30363d; border-radius: 6px; padding: 16px; margin: 12px 0; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.85em; }
+        .footer { text-align: center; color: #8b949e; margin-top: 40px; font-size: 0.9em; }
+        a { color: #58a6ff; }
+        #result { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>📱 Phone Validator API</h1>
+            <p>The most accurate phone validation for Africa and Portuguese-speaking countries. Works where Twilio fails.</p>
+            <div class="badges">
+                <span class="badge">🇲🇿 Moçambique</span>
+                <span class="badge">🇦🇴 Angola</span>
+                <span class="badge">🇧🇷 Brasil</span>
+                <span class="badge">🇵🇹 Portugal</span>
+                <span class="badge">🇿🇦 África do Sul</span>
+                <span class="badge">🇳🇬 Nigéria</span>
+                <span class="badge">+19 países</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 Try it now</h2>
+            <div class="try-area">
+                <input type="text" id="phoneInput" placeholder="Enter a phone number: +258 84 123 4567">
+                <button onclick="validatePhone()">Validate</button>
+                <pre id="result"></pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💎 Plans</h2>
+            <div class="pricing">
+                <div class="plan">
+                    <h3>Free</h3>
+                    <div class="price">$0</div>
+                    <div class="calls">100 calls/hour</div>
+                    <a href="https://rapidapi.com/gransabi009-source/phone-validator-africa-lusophone" target="_blank"><button>Get Free</button></a>
+                </div>
+                <div class="plan">
+                    <h3>Basic</h3>
+                    <div class="price">$9</div>
+                    <div class="calls">8 calls/hour</div>
+                    <a href="https://rapidapi.com/gransabi009-source/phone-validator-africa-lusophone" target="_blank"><button>Subscribe</button></a>
+                </div>
+                <div class="plan featured">
+                    <h3>Pro ⭐</h3>
+                    <div class="price">$29</div>
+                    <div class="calls">30 calls/hour</div>
+                    <a href="https://rapidapi.com/gransabi009-source/phone-validator-africa-lusophone" target="_blank"><button>Subscribe</button></a>
+                </div>
+                <div class="plan">
+                    <h3>Enterprise</h3>
+                    <div class="price">$99</div>
+                    <div class="calls">100 calls/hour</div>
+                    <a href="https://rapidapi.com/gransabi009-source/phone-validator-africa-lusophone" target="_blank"><button>Contact</button></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📖 Quick Start</h2>
+            <p>1. Register to get your API key:</p>
+            <div class="code-block">
+                curl -X POST https://phone-validator-api-2izk.onrender.com/registrar \<br>
+                -H "Content-Type: application/json" \<br>
+                -d '{"email": "you@email.com", "nome": "Your Name"}'
+            </div>
+            <p>2. Validate any number:</p>
+            <div class="code-block">
+                curl -X POST https://phone-validator-api-2izk.onrender.com/validar \<br>
+                -H "X-API-Key: your-key" \<br>
+                -H "Content-Type: application/json" \<br>
+                -d '{"numero": "+258 84 123 4567"}'
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✅ Features</h2>
+            <p>✔ 25 African & Lusophone countries</p>
+            <p>✔ Carrier detection (Vodacom, MTN, Safaricom, etc.)</p>
+            <p>✔ Line type (mobile, landline, toll-free)</p>
+            <p>✔ Number normalization (E.164 format)</p>
+            <p>✔ Automatic country detection</p>
+            <p>✔ REST API with JSON responses</p>
+        </div>
+
+        <div class="footer">
+            <p>Built by <a href="https://github.com/gransabi009-source" target="_blank">Gran-Sabio</a> · 
+            <a href="https://rapidapi.com/gransabi009-source/phone-validator-africa-lusophone" target="_blank">RapidAPI</a> · 
+            <a href="https://github.com/gransabi009-source/phone-validator-api" target="_blank">GitHub</a></p>
+        </div>
+    </div>
+
+    <script>
+        async function validatePhone() {
+            const input = document.getElementById('phoneInput').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const response = await fetch(
+                    'https://phone-validator-api-2izk.onrender.com/validar?numero=' + encodeURIComponent(input)
+                );
+                const data = await response.json();
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = 'Error: Could not connect. Try again.';
+            }
+        }
+    </script>
+</body>
+</html>
