@@ -3,7 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from typing import Optional
-import time
+import time 
+from datetime import datetime, timedelta
+from collections import defaultdict
+from fastapi import FastAPI, HTTPException, Query, Security, Request
 
 from .validators import (
         MozambiquePhoneValidator,
@@ -42,6 +45,10 @@ app = FastAPI(
     description="API de validação de números de telefone africanos e internacionais",
     version="1.0.0"
 )
+# Controlo de demonstração por IP
+demo_usage = defaultdict(list)
+DEMO_LIMIT = 5  # chamadas por hora
+DEMO_WINDOW = timedelta(hours=1)
 
 app.add_middleware(
     CORSMiddleware,
@@ -160,40 +167,32 @@ async def registrar(request: RegistroRequest):
 
 
 @app.get("/demo")
-async def demo_validar(numero: str = Query(...)):
-    """Demonstração pública - sem API Key - limitado a 5 por hora"""
-    request = PhoneNumberRequest(numero=numero)
-    return await validar_numero_interno(request)
-
-async def validar_numero_interno(request: PhoneNumberRequest):
-    numero = request.numero.strip()
-    if not numero:
-        raise HTTPException(status_code=400, detail="Número obrigatório")
+async def demo_validar(numero: str = Query(...), request: Request = None):
+    """Demonstração pública - sem API Key - limitado a 5 por hora por IP"""
     
-    codigo_pais = None
-    if request.pais_hint:
-        hints = {
-            'MZ': '258', 'MOÇAMBIQUE': '258',
-            'AO': '244', 'ANGOLA': '244',
-            'BR': '55', 'BRASIL': '55',
-            'PT': '351', 'PORTUGAL': '351',
-        }
-        codigo_pais = hints.get(request.pais_hint.upper())
+    # Obter IP do visitante
+    client_ip = request.client.host if request else "unknown"
     
-    if not codigo_pais:
-        codigo_pais = detectar_pais(numero)
+    # Limpar registos antigos
+    agora = datetime.now()
+    demo_usage[client_ip] = [
+        t for t in demo_usage[client_ip] 
+        if agora - t < DEMO_WINDOW
+    ]
     
-    if not codigo_pais:
-        validator = InternacionalPhoneValidator(codigo_pais='+??', nome_pais='Desconhecido')
-        resultado = validator.validar(numero)
-        return PhoneNumberResponse(**resultado)
+    # Verificar limite
+    if len(demo_usage[client_ip]) >= DEMO_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Limite de demonstração atingido ({DEMO_LIMIT} por hora). Registe-se para uso ilimitado: /registrar"
+        )
     
-    validator = VALIDATORS.get(codigo_pais)
-    if not validator:
-        validator = InternacionalPhoneValidator(codigo_pais=f'+{codigo_pais}', nome_pais='Desconhecido')
+    # Registar esta chamada
+    demo_usage[client_ip].append(agora)
     
-    resultado = validator.validar(numero)
-    return PhoneNumberResponse(**resultado)
+    # Validar
+    phone_request = PhoneNumberRequest(numero=numero)
+    return await validar_numero(phone_request)
 
 @app.post("/validar", response_model=PhoneNumberResponse)
 async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(api_key_header)):
