@@ -192,17 +192,10 @@ async def demo_validar(numero: str = Query(...), request: Request = None):
     
     # Validar
     phone_request = PhoneNumberRequest(numero=numero)
-    return await validar_numero(phone_request)
+    return await validar_numero_interno(phone_request)
 
-@app.post("/validar", response_model=PhoneNumberResponse)
-async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(api_key_header)):
-    if api_key:
-        auth = verificar_api_key(api_key)
-        if not auth:
-            raise HTTPException(status_code=401, detail="API Key inválida")
-    else:
-        raise HTTPException(status_code=401, detail="API Key obrigatória. Registe-se em /registrar")
-    
+async def validar_numero_interno(request: PhoneNumberRequest):
+    """Validação interna - sem verificação de API Key"""
     numero = request.numero.strip()
     if not numero:
         raise HTTPException(status_code=400, detail="Número de telefone é obrigatório")
@@ -218,7 +211,7 @@ async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(ap
             'CV': '238', 'CABO VERDE': '238', 'CABO-VERDE': '238','CAPE-VERDE': '238',
             'GW': '245', 'GUINÉ-BISSAU': '245', 'GUINÉ': '245','GUINEA-BISSAU': '245',
             'ST': '239', 'SÃO TOMÉ': '239', 'SAO TOME': '239',
-            'TL': '670', 'TIMOR-LESTE': '670', 'TIMOR': '670', 'EAST-TIMOR': '670',  'EAST TIMOR': '670',
+            'TL': '670', 'TIMOR-LESTE': '670', 'TIMOR': '670', 'EAST-TIMOR': '670', 'EAST TIMOR': '670',
             'ZA': '27', 'ÁFRICA DO SUL': '27', 'AFRICA DO SUL': '27', 'SOUTH AFRICA': '27',
             'NG': '234', 'NIGÉRIA': '234', 'NIGERIA': '234',
             'KE': '254', 'QUÉNIA': '254', 'QUENIA': '254', 'KENYA': '254',
@@ -252,3 +245,14 @@ async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(ap
     
     resultado = validator.validar(numero)
     return PhoneNumberResponse(**resultado)
+
+@app.post("/validar", response_model=PhoneNumberResponse)
+async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(api_key_header)):
+    if not api_key or str(api_key) == "":
+        raise HTTPException(status_code=401, detail="API Key obrigatória")
+    
+    auth = verificar_api_key(str(api_key))
+    if not auth:
+        raise HTTPException(status_code=401, detail="API Key inválida")
+    
+    return await validar_numero_interno(request)
