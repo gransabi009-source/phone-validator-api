@@ -7,6 +7,7 @@ import time
 from datetime import datetime, timedelta
 from collections import defaultdict
 from fastapi import FastAPI, HTTPException, Query, Security, Request
+from .logger import registrar_log, obter_logs, obter_estatisticas
 
 from .validators import (
         MozambiquePhoneValidator,
@@ -286,13 +287,40 @@ async def verificar_status(api_key: str = Security(api_key_header)):
     }
 
 @app.post("/validar", response_model=PhoneNumberResponse)
-async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(api_key_header)):
-    if not api_key or str(api_key) == "":
+async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(api_key_header), req: Request = None): # type: ignore
+    client_ip = req.client.host if req and req.client else "unknown"
+    key_str = str(api_key) if api_key else ""
+    
+    if not api_key or key_str == "":
+        registrar_log("unknown", "sem_chave", "/validar", client_ip, request.numero, False, "Sem API Key")
         raise HTTPException(status_code=401, detail="API Key obrigatória. Registe-se em /registrar")
     
-    auth = verificar_api_key(str(api_key))
+    auth = verificar_api_key(key_str)
     if not auth.get("valido"):
+        registrar_log(key_str, "desconhecido", "/validar", client_ip, request.numero, False, auth.get("erro", ""))
         raise HTTPException(status_code=429 if "Limite" in str(auth.get("erro", "")) else 401, 
                           detail=auth.get("erro", "API Key inválida"))
     
-    return await validar_numero_interno(request)
+    try:
+        resultado = await validar_numero_interno(request)
+        registrar_log(key_str, auth.get("plano", "?"), "/validar", client_ip, request.numero, True, "Sucesso")
+        return resultado
+    except Exception as e:
+        registrar_log(key_str, auth.get("plano", "?"), "/validar", client_ip, request.numero, False, str(e))
+        raise e
+    
+@app.get("/admin/stats")
+async def admin_stats(api_key: str = Security(api_key_header)):
+    """Estatísticas de uso (requer API Key de plano profissional ou superior)"""
+    if not api_key or str(api_key) == "":
+        raise HTTPException(status_code=401, detail="API Key obrigatória")
+    
+    auth = verificar_api_key(str(api_key))
+    if not auth.get("valido"):
+        raise HTTPException(status_code=401, detail="API Key inválida")
+    
+    # Só planos pagos podem ver estatísticas
+    if auth.get("plano") in ["gratis"]:
+        raise HTTPException(status_code=403, detail="Upgrade para ver estatísticas")
+    
+    return obter_estatisticas()

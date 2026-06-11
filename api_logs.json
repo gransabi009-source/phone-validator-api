@@ -1,0 +1,12 @@
+[
+  {
+    "data": "2026-06-11T23:19:06.744852",
+    "api_key": "ab70fc7c...",
+    "plano": "profissional",
+    "endpoint": "/validar",
+    "ip": "127.0.0.1",
+    "numero": "+258846632...",
+    "sucesso": true,
+    "detalhes": "Sucesso"
+  }
+]
