@@ -149,11 +149,13 @@ async def root():
 async def registrar(request: RegistroRequest):
     api_key = gerar_api_key(request.email)
     import sqlite3
+    from datetime import datetime
     conn = sqlite3.connect('api_keys.db')
     cursor = conn.cursor()
+    mes_atual = datetime.now().strftime('%Y-%m')
     cursor.execute(
-        'INSERT INTO api_keys (key_hash, plano, data_criacao) VALUES (?, ?, ?)',
-        (api_key, request.plano, time.strftime('%Y-%m-%dT%H:%M:%S'))
+        'INSERT INTO api_keys (key_hash, email, plano, mes_reset, data_criacao) VALUES (?, ?, ?, ?, ?)',
+        (api_key, request.email, request.plano, mes_atual, datetime.now().isoformat())
     )
     conn.commit()
     conn.close()
@@ -162,6 +164,7 @@ async def registrar(request: RegistroRequest):
         "sucesso": True,
         "api_key": api_key,
         "plano": request.plano,
+        "plano_info": PLANOS.get(request.plano, PLANOS['gratis']),
         "mensagem": "Guarde esta chave. Use no header X-API-Key"
     }
 
@@ -246,13 +249,50 @@ async def validar_numero_interno(request: PhoneNumberRequest):
     resultado = validator.validar(numero)
     return PhoneNumberResponse(**resultado)
 
-@app.post("/validar", response_model=PhoneNumberResponse)
-async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(api_key_header)):
+@app.get("/status")
+async def verificar_status(api_key: str = Security(api_key_header)):
+    """Verifica o estado da tua API Key e uso"""
     if not api_key or str(api_key) == "":
         raise HTTPException(status_code=401, detail="API Key obrigatória")
     
     auth = verificar_api_key(str(api_key))
-    if not auth:
+    # Não conta como chamada - só verifica
+    
+    import sqlite3
+    conn = sqlite3.connect('api_keys.db')
+    cursor = conn.cursor()
+    cursor.execute(
+        'SELECT plano, chamadas_mes, chamadas_total, mes_reset, data_criacao, ultimo_uso FROM api_keys WHERE key_hash = ?',
+        (str(api_key),)
+    )
+    resultado = cursor.fetchone()
+    conn.close()
+    
+    if not resultado:
         raise HTTPException(status_code=401, detail="API Key inválida")
+    
+    plano, chamadas_mes, chamadas_total, mes_reset, data_criacao, ultimo_uso = resultado
+    info_plano = PLANOS.get(plano, PLANOS['gratis'])
+    
+    return {
+        "plano": info_plano['nome'],
+        "chamadas_usadas_mes": chamadas_mes,
+        "limite_mes": info_plano['chamadas_mes'],
+        "restantes": info_plano['chamadas_mes'] - chamadas_mes,
+        "chamadas_total": chamadas_total,
+        "data_criacao": data_criacao,
+        "ultimo_uso": ultimo_uso,
+        "mes_referencia": mes_reset
+    }
+
+@app.post("/validar", response_model=PhoneNumberResponse)
+async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(api_key_header)):
+    if not api_key or str(api_key) == "":
+        raise HTTPException(status_code=401, detail="API Key obrigatória. Registe-se em /registrar")
+    
+    auth = verificar_api_key(str(api_key))
+    if not auth.get("valido"):
+        raise HTTPException(status_code=429 if "Limite" in str(auth.get("erro", "")) else 401, 
+                          detail=auth.get("erro", "API Key inválida"))
     
     return await validar_numero_interno(request)

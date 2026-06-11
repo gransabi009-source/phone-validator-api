@@ -1,3 +1,5 @@
+from datetime import datetime
+
 PLANOS = {
     'gratis': {
         'nome': 'Grátis',
@@ -28,3 +30,7 @@ PLANOS = {
         'recursos': ['Tudo do Profissional', '100.000 chamadas/mês', 'SLA garantido']
     }
 }
+
+def get_plano_info(plano_nome: str):
+    """Retorna info do plano ou None se não existir"""
+    return PLANOS.get(plano_nome)
