@@ -170,11 +170,11 @@ async def registrar(request: RegistroRequest):
 
 
 @app.get("/demo")
-async def demo_validar(numero: str = Query(...), request: Request = None):
+async def demo_validar(numero: str = Query(...), request: Request = None):  # type: ignore
     """Demonstração pública - sem API Key - limitado a 5 por hora por IP"""
     
     # Obter IP do visitante
-    client_ip = request.client.host if request else "unknown"
+    client_ip = request.client.host if request and request.client else "unknown"
     
     # Limpar registos antigos
     agora = datetime.now()
