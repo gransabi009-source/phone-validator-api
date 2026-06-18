@@ -8,5 +8,25 @@
     "numero": "+258846632...",
     "sucesso": true,
     "detalhes": "Sucesso"
+  },
+  {
+    "data": "2026-06-18T23:38:52.777056",
+    "api_key": "b54e961e...",
+    "plano": "gratis",
+    "endpoint": "/validar",
+    "ip": "127.0.0.1",
+    "numero": "870805195",
+    "sucesso": true,
+    "detalhes": "Sucesso"
+  },
+  {
+    "data": "2026-06-18T23:39:07.767701",
+    "api_key": "b54e961e...",
+    "plano": "gratis",
+    "endpoint": "/validar",
+    "ip": "127.0.0.1",
+    "numero": "870805195",
+    "sucesso": true,
+    "detalhes": "Sucesso"
   }
 ]

@@ -15,6 +15,7 @@ def init_db():
             chamadas_mes INTEGER DEFAULT 0,
             chamadas_total INTEGER DEFAULT 0,
             mes_reset TEXT,
+            origem TEXT DEFAULT 'site',
             data_criacao TEXT,
             ultimo_uso TEXT
         )
@@ -27,12 +28,12 @@ def gerar_api_key(email: str) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 def verificar_api_key(api_key: str, db_path: str = 'api_keys.db'):
-    """Verifica API Key e aplica limite de plano"""
+    """Verifica API Key e aplica limite de plano (só para chaves do site)"""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
     cursor.execute(
-        'SELECT plano, chamadas_mes, mes_reset FROM api_keys WHERE key_hash = ?',
+        'SELECT plano, chamadas_mes, mes_reset, origem FROM api_keys WHERE key_hash = ?',
         (api_key,)
     )
     resultado = cursor.fetchone()
@@ -41,9 +42,21 @@ def verificar_api_key(api_key: str, db_path: str = 'api_keys.db'):
         conn.close()
         return {"valido": False, "erro": "API Key inválida"}
     
-    plano, chamadas_mes, mes_reset = resultado
+    plano, chamadas_mes, mes_reset, origem = resultado
     
-    # Verificar se é um novo mês
+    # Se a chave veio do RapidAPI, não aplicamos limite
+    if origem == 'rapidapi':
+        conn.close()
+        return {
+            "valido": True,
+            "plano": plano,
+            "nome_plano": "RapidAPI",
+            "chamadas_usadas": 0,
+            "limite": "Ilimitado (gerido pelo RapidAPI)",
+            "restantes": "Ilimitado"
+        }
+    
+    # Para chaves do site, aplicar limite mensal
     agora = datetime.now()
     mes_atual = agora.strftime('%Y-%m')
     
@@ -51,7 +64,7 @@ def verificar_api_key(api_key: str, db_path: str = 'api_keys.db'):
         chamadas_mes = 0
         mes_reset = mes_atual
     
-    # Verificar limite do plano
+    
     info_plano = PLANOS.get(plano, PLANOS['gratis'])
     limite = info_plano['chamadas_mes']
     
@@ -62,7 +75,7 @@ def verificar_api_key(api_key: str, db_path: str = 'api_keys.db'):
             "erro": f"Limite do plano {info_plano['nome']} atingido ({limite} chamadas/mês). Faça upgrade."
         }
     
-    # Atualizar contador
+
     cursor.execute(
         '''UPDATE api_keys 
            SET chamadas_mes = chamadas_mes + 1, 

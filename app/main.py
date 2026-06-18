@@ -155,9 +155,9 @@ async def registrar(request: RegistroRequest):
     cursor = conn.cursor()
     mes_atual = datetime.now().strftime('%Y-%m')
     cursor.execute(
-        'INSERT INTO api_keys (key_hash, email, plano, mes_reset, data_criacao) VALUES (?, ?, ?, ?, ?)',
-        (api_key, request.email, request.plano, mes_atual, datetime.now().isoformat())
-    )
+    'INSERT INTO api_keys (key_hash, email, plano, mes_reset, origem, data_criacao) VALUES (?, ?, ?, ?, ?, ?)',
+    (api_key, request.email, request.plano, mes_atual, 'site', datetime.now().isoformat())
+)
     conn.commit()
     conn.close()
     

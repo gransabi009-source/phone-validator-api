@@ -59,7 +59,16 @@
                 <pre id="result"></pre>
             </div>
         </div>
-
+        <div class="section">
+            <h2>🔑 Get Your Free API Key</h2>
+            <p>Start validating African phone numbers in seconds. No credit card required.</p>
+            <form id="registerForm" onsubmit="registerKey(event)">
+                <input type="email" id="regEmail" placeholder="Your email" required style="width:100%;padding:12px;background:#161b22;border:1px solid #30363d;color:#c9d1d9;border-radius:6px;font-size:1em;margin-bottom:12px;">
+                <input type="text" id="regName" placeholder="Your name" required style="width:100%;padding:12px;background:#161b22;border:1px solid #30363d;color:#c9d1d9;border-radius:6px;font-size:1em;margin-bottom:12px;">
+                <button type="submit" style="padding:12px 24px;background:#238636;color:white;border:none;border-radius:6px;font-size:1em;cursor:pointer;">Get Free API Key</button>
+            </form>
+            <pre id="registerResult" style="display:none;margin-top:12px;"></pre>
+        </div>
         <div class="section">
             <h2>💎 Plans</h2>
             <div class="pricing">
@@ -92,18 +101,89 @@
 
         <div class="section">
             <h2>📖 Quick Start</h2>
-            <p>1. Register to get your API key:</p>
+            
+            <h3 style="color:#58a6ff;margin-bottom:12px;">1. Get your free API Key</h3>
+            <p>Use the form above or call:</p>
             <div class="code-block">
-                curl -X POST https://phone-validator-api-2izk.onrender.com/registrar \<br>
-                -H "Content-Type: application/json" \<br>
+                curl -X POST https://phone-validator-api-2izk.onrender.com/registrar \
+                -H "Content-Type: application/json" \
                 -d '{"email": "you@email.com", "nome": "Your Name"}'
             </div>
-            <p>2. Validate any number:</p>
+
+            <h3 style="color:#58a6ff;margin:20px 0 12px;">2. Validate a number</h3>
+            
+            <p><strong>cURL</strong></p>
             <div class="code-block">
-                curl -X POST https://phone-validator-api-2izk.onrender.com/validar \<br>
-                -H "X-API-Key: your-key" \<br>
-                -H "Content-Type: application/json" \<br>
+                curl -X POST https://phone-validator-api-2izk.onrender.com/validar \
+                -H "X-API-Key: your-api-key" \
+                -H "Content-Type: application/json" \
                 -d '{"numero": "+258 84 123 4567"}'
+            </div>
+
+            <p><strong>Python</strong></p>
+            <div class="code-block">
+                import requests
+
+                url = "https://phone-validator-api-2izk.onrender.com/validar"
+                headers = {
+                    "X-API-Key": "your-api-key",
+                    "Content-Type": "application/json"
+                }
+                data = {"numero": "+258 84 123 4567"}
+
+                response = requests.post(url, json=data, headers=headers)
+                print(response.json())
+            </div>
+
+            <p><strong>JavaScript (Node.js)</strong></p>
+            <div class="code-block">
+                const response = await fetch(
+                "https://phone-validator-api-2izk.onrender.com/validar",
+                {
+                    method: "POST",
+                    headers: {
+                    "X-API-Key": "your-api-key",
+                    "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ numero: "+258 84 123 4567" })
+                }
+                );
+                const data = await response.json();
+                console.log(data);
+                    </div>
+
+                    <p><strong>PHP</strong></p>
+                    <div class="code-block">
+                &lt;?php
+                $url = "https://phone-validator-api-2izk.onrender.com/validar";
+                $data = json_encode(["numero" => "+258 84 123 4567"]);
+
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    "X-API-Key: your-api-key",
+                    "Content-Type: application/json"
+                ]);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                $response = curl_exec($ch);
+                curl_close($ch);
+                print_r(json_decode($response, true));
+                ?&gt;
+            </div>
+
+            <h3 style="color:#58a6ff;margin:20px 0 12px;">3. Response example</h3>
+            <div class="code-block">
+                {
+                "numero_original": "+258 84 123 4567",
+                "numero_normalizado": "+258841234567",
+                "pais": "Moçambique",
+                "codigo_pais": "+258",
+                "operadora": "Vodacom",
+                "tipo": "celular",
+                "valido": true
+                }
             </div>
         </div>
 
