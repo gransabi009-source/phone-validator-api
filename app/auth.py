@@ -96,3 +96,30 @@ def verificar_api_key(api_key: str, db_path: str = 'api_keys.db'):
         "limite": limite,
         "restantes": limite - (chamadas_mes + 1)
     }
+
+def obter_info_chave(api_key: str, db_path: str = 'api_keys.db'):
+    """Retorna info da chave sem incrementar contador"""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        'SELECT plano, chamadas_mes, mes_reset, origem FROM api_keys WHERE key_hash = ?',
+        (api_key,)
+    )
+    resultado = cursor.fetchone()
+    conn.close()
+    
+    if not resultado:
+        return None
+    
+    plano, chamadas_mes, mes_reset, origem = resultado
+    info_plano = PLANOS.get(plano, PLANOS['gratis'])
+    
+    return {
+        "plano": plano,
+        "nome_plano": info_plano['nome'],
+        "chamadas_usadas": chamadas_mes,
+        "limite": info_plano['chamadas_mes'],
+        "restantes": info_plano['chamadas_mes'] - chamadas_mes,
+        "origem": origem
+    }

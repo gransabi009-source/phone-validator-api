@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from fastapi import FastAPI, HTTPException, Query, Security, Request
 from .logger import registrar_log, obter_logs, obter_estatisticas
+from .auth import init_db, gerar_api_key, verificar_api_key, obter_info_chave
 
 from .validators import (
         MozambiquePhoneValidator,
@@ -304,7 +305,20 @@ async def validar_numero(request: PhoneNumberRequest, api_key: str = Security(ap
     try:
         resultado = await validar_numero_interno(request)
         registrar_log(key_str, auth.get("plano", "?"), "/validar", client_ip, request.numero, True, "Sucesso")
-        return resultado
+        
+        # Obter info atualizada para headers
+        info = obter_info_chave(key_str)
+        
+        # Criar resposta com headers
+        from fastapi.responses import JSONResponse
+        response = JSONResponse(content=resultado.model_dump())
+        if info:
+            response.headers["X-RateLimit-Limit"] = str(info["limite"])
+            response.headers["X-RateLimit-Remaining"] = str(info["restantes"])
+            response.headers["X-RateLimit-Reset"] = info.get("mes_reset", "monthly")
+            response.headers["X-Plan-Name"] = info["nome_plano"]
+        
+        return response
     except Exception as e:
         registrar_log(key_str, auth.get("plano", "?"), "/validar", client_ip, request.numero, False, str(e))
         raise e

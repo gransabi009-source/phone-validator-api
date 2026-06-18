@@ -28,5 +28,35 @@
     "numero": "870805195",
     "sucesso": true,
     "detalhes": "Sucesso"
+  },
+  {
+    "data": "2026-06-19T01:54:58.016246",
+    "api_key": "0f79da1d...",
+    "plano": "gratis",
+    "endpoint": "/validar",
+    "ip": "127.0.0.1",
+    "numero": "Gran",
+    "sucesso": true,
+    "detalhes": "Sucesso"
+  },
+  {
+    "data": "2026-06-19T01:55:11.211732",
+    "api_key": "0f79da1d...",
+    "plano": "gratis",
+    "endpoint": "/validar",
+    "ip": "127.0.0.1",
+    "numero": "Gran",
+    "sucesso": true,
+    "detalhes": "Sucesso"
+  },
+  {
+    "data": "2026-06-19T01:55:35.053735",
+    "api_key": "0f79da1d...",
+    "plano": "gratis",
+    "endpoint": "/validar",
+    "ip": "127.0.0.1",
+    "numero": "878402730",
+    "sucesso": true,
+    "detalhes": "Sucesso"
   }
 ]
